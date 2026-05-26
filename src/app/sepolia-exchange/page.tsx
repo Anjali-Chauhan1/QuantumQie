@@ -83,11 +83,7 @@ export default function SepoliaExchangePage() {
     if (!receipt.isSuccess || !saleIntent || !activeTxHash || !address) return;
 
     const finalizeSale = async () => {
-      await completeSepoliaListingSale({
-        id: saleIntent.listingId,
-        buyerAddress: saleIntent.buyerAddress,
-        txHash: activeTxHash,
-      });
+      await completeSepoliaListingSale(saleIntent.listingId, saleIntent.buyerAddress, activeTxHash);
       setStatusMessage('Purchase confirmed on Sepolia.');
       setSaleIntent(null);
       setActiveTxHash(undefined);
@@ -141,12 +137,7 @@ export default function SepoliaExchangePage() {
         unitPriceWei: parseEther(parsedPrice).toString(),
       });
 
-      const created = await createSepoliaListing({
-        sellerAddress: draft.seller_address,
-        itemKey: draft.item_key,
-        quantity: draft.amount,
-        unitPriceEth: parsedPrice,
-      });
+      const created = await createSepoliaListing(draft);
 
       if (!created) {
         setErrorMessage('Unable to publish listing to Sepolia market.');
@@ -165,7 +156,7 @@ export default function SepoliaExchangePage() {
 
   const onBuyListing = async (listing: SepoliaListing) => {
     if (!address) return;
-    if (listing.sellerAddress.toLowerCase() === address.toLowerCase()) {
+    if (listing.seller_address.toLowerCase() === address.toLowerCase()) {
       setErrorMessage('You cannot buy your own listing.');
       return;
     }
@@ -189,8 +180,8 @@ export default function SepoliaExchangePage() {
 
     try {
       const txHash = await sendTransactionAsync({
-        to: listing.sellerAddress as `0x${string}`,
-        value: parseEther(listing.totalPriceEth),
+        to: listing.seller_address as `0x${string}`,
+        value: BigInt(listing.total_price_wei),
       });
       setActiveTxHash(txHash);
       setSaleIntent({ listingId: listing.id, buyerAddress: address });
@@ -338,21 +329,21 @@ export default function SepoliaExchangePage() {
           ) : (
             <ul className="exchange-list">
               {listings.map((listing) => {
-                const item = EXCHANGE_ITEMS.find((entry) => entry.key === listing.itemKey);
-                const isOwnListing = address ? listing.sellerAddress.toLowerCase() === address.toLowerCase() : false;
+                const item = EXCHANGE_ITEMS.find((entry) => entry.key === listing.item_key);
+                const isOwnListing = address ? listing.seller_address.toLowerCase() === address.toLowerCase() : false;
 
                 return (
                   <li key={listing.id} className={`exchange-listing ${item?.toneClass ?? ''}`}>
                     <div className="exchange-listing-main">
                       <div className="exchange-listing-title">
-                        <span className="exchange-listing-name">{item?.label ?? listing.itemKey}</span>
+                        <span className="exchange-listing-name">{item?.label ?? listing.item_key}</span>
                         <span className="exchange-listing-count">x{listing.quantity}</span>
                       </div>
                       <p className="exchange-listing-desc">{item?.description ?? 'Public produce order'}</p>
                       <div className="exchange-listing-meta">
-                        <span>Seller: {shortAddress(listing.sellerAddress)}</span>
-                        <span>Unit: {listing.unitPriceEth} ETH</span>
-                        <span>Total: {listing.totalPriceEth} ETH</span>
+                        <span>Seller: {shortAddress(listing.seller_address)}</span>
+                        <span>Unit: {formatEther(BigInt(listing.unit_price_wei))} ETH</span>
+                        <span>Total: {formatEther(BigInt(listing.total_price_wei))} ETH</span>
                       </div>
                     </div>
 
