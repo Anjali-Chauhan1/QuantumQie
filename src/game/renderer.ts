@@ -112,11 +112,13 @@ export function render(
       ctx.strokeRect(wx - ws * 0.5, wy - ws * 0.7, ws, ws);
 
       if (b.readyToHarvest) {
-        // Draw bouncing "Ready" icon
+        // Draw bouncing "Ready" icon (inside top of building so it is not clipped)
         const bounce = Math.sin(time / 150) * 5;
+        const iconR = tileScreenSize * 0.22;
+        const iconY = screen.y + totalSize * 0.14 + iconR + bounce;
         ctx.fillStyle = '#00ff88';
         ctx.beginPath();
-        ctx.arc(cx, cy - totalSize * 0.3 + bounce, tileScreenSize * 0.25, 0, Math.PI * 2);
+        ctx.arc(cx, iconY, iconR, 0, Math.PI * 2);
         ctx.fill();
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 2;
@@ -126,13 +128,13 @@ export function render(
         ctx.font = `bold ${tileScreenSize * 0.35}px sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('✓', cx, cy - totalSize * 0.3 + bounce);
+        ctx.fillText('✓', cx, iconY);
       } else {
-        // Draw progress bar
+        // Draw progress bar along top inside the building footprint
         const barW = totalSize * 0.8;
         const barH = Math.max(4, tileScreenSize * 0.15);
         const barX = screen.x + totalSize * 0.1;
-        const barY = screen.y - barH - 4;
+        const barY = screen.y + totalSize * 0.06;
         
         ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
         ctx.fillRect(barX, barY, barW, barH);

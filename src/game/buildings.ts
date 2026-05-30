@@ -113,12 +113,14 @@ export function getBuildingDef(id: string): BuildingDef | undefined {
 }
 
 const FARM_SPRITE_SRC = '/assets/image.png';
-const FARM_SPRITE_SCALE = 1.0;
+/** Inset inside the building footprint so crops are not clipped at tile edges. */
+const FARM_SPRITE_INSET = 0.08;
 const FARM_SPRITE_GRID = 1;
+/** Crops aligned to centered 2×2 soil patches in image.png (reference layout). */
 const FARM_SPRITE_CROPS: Record<'farm-wheat' | 'farm-potato' | 'farm-rice', SpriteCrop> = {
-  'farm-wheat': { x: 304, y: 280, w: 128, h: 128 },
-  'farm-potato': { x: 528, y: 224, w: 128, h: 128 },
-  'farm-rice': { x: 416, y: 440, w: 128, h: 128 },
+  'farm-wheat': { x: 300, y: 296, w: 116, h: 116 },
+  'farm-potato': { x: 532, y: 240, w: 112, h: 112 },
+  'farm-rice': { x: 422, y: 476, w: 118, h: 118 },
 };
 
 let farmSpriteImage: HTMLImageElement | null = null;
@@ -145,38 +147,38 @@ function drawFarmSprite(
   ensureFarmSprites();
   if (!farmSpriteReady || !farmSpriteImage) return false;
 
-  const size = s * FARM_SPRITE_SCALE;
-  const pad = (s - size) / 2;
+  const inset = s * FARM_SPRITE_INSET;
+  const box = s - inset * 2;
+  const aspect = crop.w / crop.h;
+  let dw = box;
+  let dh = box;
+  if (aspect > 1) {
+    dh = box / aspect;
+  } else if (aspect < 1) {
+    dw = box * aspect;
+  }
+  const dx = sx + inset + (box - dw) / 2;
+  const dy = sy + inset + (box - dh) / 2;
+
   ctx.save();
   ctx.imageSmoothingEnabled = false;
   if (FARM_SPRITE_GRID <= 1) {
-    ctx.drawImage(
-      farmSpriteImage,
-      crop.x,
-      crop.y,
-      crop.w,
-      crop.h,
-      sx + pad,
-      sy + pad,
-      size,
-      size,
-    );
+    ctx.drawImage(farmSpriteImage, crop.x, crop.y, crop.w, crop.h, dx, dy, dw, dh);
   } else {
-    const inset = pad + size * 0.06;
-    const gap = size * 0.06;
-    const cell = (s - inset * 2 - gap) / FARM_SPRITE_GRID;
+    const gap = box * 0.06;
+    const cell = (box - gap) / FARM_SPRITE_GRID;
     for (let row = 0; row < FARM_SPRITE_GRID; row++) {
       for (let col = 0; col < FARM_SPRITE_GRID; col++) {
-        const dx = sx + inset + col * (cell + gap);
-        const dy = sy + inset + row * (cell + gap);
+        const tileX = sx + inset + col * (cell + gap);
+        const tileY = sy + inset + row * (cell + gap);
         ctx.drawImage(
           farmSpriteImage,
           crop.x,
           crop.y,
           crop.w,
           crop.h,
-          dx,
-          dy,
+          tileX,
+          tileY,
           cell,
           cell,
         );
@@ -185,6 +187,21 @@ function drawFarmSprite(
   }
   ctx.restore();
   return true;
+}
+
+function isFarmBuilding(defId: string): defId is keyof typeof FARM_SPRITE_CROPS {
+  return defId === 'farm-wheat' || defId === 'farm-potato' || defId === 'farm-rice';
+}
+
+function tryDrawFarmSprite(
+  ctx: CanvasRenderingContext2D,
+  def: BuildingDef,
+  sx: number,
+  sy: number,
+  s: number,
+): boolean {
+  if (!isFarmBuilding(def.id)) return false;
+  return drawFarmSprite(ctx, FARM_SPRITE_CROPS[def.id], sx, sy, s);
 }
 
 // ── Internal Drawing Utilities ───────────────────────────────────────────────
@@ -406,7 +423,6 @@ function drawFarmWheat(
   sy: number,
   s: number,
 ): void {
-  if (drawFarmSprite(ctx, FARM_SPRITE_CROPS['farm-wheat'], sx, sy, s)) return;
   const cx = sx + s / 2;
   const furrowColor = darken(def.color, 0.2);
   const pad = s * 0.12;
@@ -448,7 +464,6 @@ function drawFarmPotato(
   sy: number,
   s: number,
 ): void {
-  if (drawFarmSprite(ctx, FARM_SPRITE_CROPS['farm-potato'], sx, sy, s)) return;
   const furrowColor = darken(def.color, 0.25);
   const pad = s * 0.12;
   const rowCount = 3;
@@ -485,7 +500,6 @@ function drawFarmRice(
   sy: number,
   s: number,
 ): void {
-  if (drawFarmSprite(ctx, FARM_SPRITE_CROPS['farm-rice'], sx, sy, s)) return;
   const waterColor = darken(def.color, 0.15);
   const pad = s * 0.12;
   const rowCount = 3;
@@ -816,19 +830,27 @@ export function drawBuilding(
   ctx.save();
   ctx.globalAlpha = alpha;
 
-  // Base rectangle shared by all
-  drawBaseRect(ctx, def.color, screenX, screenY, totalSize, radius);
+  const drewFarmSprite = tryDrawFarmSprite(ctx, def, screenX, screenY, totalSize);
 
-  // Per‑building details
+  if (!drewFarmSprite) {
+    drawBaseRect(ctx, def.color, screenX, screenY, totalSize, radius);
+    switch (def.id) {
+      case 'farm-wheat':
+        drawFarmWheat(ctx, def, screenX, screenY, totalSize);
+        break;
+      case 'farm-potato':
+        drawFarmPotato(ctx, def, screenX, screenY, totalSize);
+        break;
+      case 'farm-rice':
+        drawFarmRice(ctx, def, screenX, screenY, totalSize);
+        break;
+    }
+  }
+
   switch (def.id) {
     case 'farm-wheat':
-      drawFarmWheat(ctx, def, screenX, screenY, totalSize);
-      break;
     case 'farm-potato':
-      drawFarmPotato(ctx, def, screenX, screenY, totalSize);
-      break;
     case 'farm-rice':
-      drawFarmRice(ctx, def, screenX, screenY, totalSize);
       break;
     case 'mine-copper':
       drawMinerCopper(ctx, def, screenX, screenY, totalSize);
@@ -861,21 +883,27 @@ export function drawBuildingIcon(
   ctx.save();
 
   const radius = Math.max(2, size * 0.1);
-  drawBaseRect(ctx, def.color, x, y, size, radius);
+  const drewFarmSprite = tryDrawFarmSprite(ctx, def, x, y, size);
+  if (!drewFarmSprite) {
+    drawBaseRect(ctx, def.color, x, y, size, radius);
+    switch (def.id) {
+      case 'farm-wheat':
+        drawFarmWheat(ctx, def, x, y, size);
+        break;
+      case 'farm-potato':
+        drawFarmPotato(ctx, def, x, y, size);
+        break;
+      case 'farm-rice':
+        drawFarmRice(ctx, def, x, y, size);
+        break;
+    }
+  }
 
   switch (def.id) {
-    case 'farm-wheat': {
-      drawFarmWheat(ctx, def, x, y, size);
+    case 'farm-wheat':
+    case 'farm-potato':
+    case 'farm-rice':
       break;
-    }
-    case 'farm-potato': {
-      drawFarmPotato(ctx, def, x, y, size);
-      break;
-    }
-    case 'farm-rice': {
-      drawFarmRice(ctx, def, x, y, size);
-      break;
-    }
     case 'mine-copper': {
       drawMinerCopper(ctx, def, x, y, size);
       break;

@@ -71,18 +71,23 @@ export async function GET() {
   }
 
   const fullSelect = 'save_id, money, wheat, potato, rice, iron_ore, copper_ore, diamond, food, updated_at';
-  let { data, error } = await client.from<InventoryRow>('inventory').select(fullSelect);
+  let data: InventoryRow[] | null = null;
+  let error: { message: string } | null = null;
+
+  const fullResponse = await client.from('inventory').select(fullSelect);
+  data = fullResponse.data as InventoryRow[] | null;
+  error = fullResponse.error;
 
   if (error && isMissingColumnError(error.message)) {
     const legacySelect = 'save_id, money, food, updated_at';
-    const legacyResponse = await client.from<InventoryRow>('inventory').select(legacySelect);
-    data = legacyResponse.data;
+    const legacyResponse = await client.from('inventory').select(legacySelect);
+    data = legacyResponse.data as InventoryRow[] | null;
     error = legacyResponse.error;
 
     if (error && isMissingColumnError(error.message)) {
       const minimalSelect = 'save_id, money, updated_at';
-      const minimalResponse = await client.from<InventoryRow>('inventory').select(minimalSelect);
-      data = minimalResponse.data;
+      const minimalResponse = await client.from('inventory').select(minimalSelect);
+      data = minimalResponse.data as InventoryRow[] | null;
       error = minimalResponse.error;
     }
   }
