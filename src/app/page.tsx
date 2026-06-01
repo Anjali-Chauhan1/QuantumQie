@@ -225,9 +225,8 @@ export default function LandingPage() {
                   <header className="landing-header">
                     <div className="logo-text">QUANTUM QIE</div>
                     {!address ? (
-                      <div className="relative group">
-                        <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-lg blur opacity-50 group-hover:opacity-100 transition duration-300" />
-                        <div className="relative"><WalletButton /></div>
+                      <div className="wallet-connect-wrapper">
+                        <WalletButton />
                       </div>
                     ) : (
                       <div className="wallet-connected-badge">

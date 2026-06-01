@@ -365,19 +365,64 @@ body:has(.landing-wrapper) .global-nav {
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: 20px;
 }
 
 .cta-hint {
-  font-family: 'Silkscreen', sans-serif;
-  font-size: 14px;
-  color: #888;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
+  color: #ffffff;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+  opacity: 1;
+  animation: pulseHint 2.5s infinite ease-in-out;
+  margin-top: 20px;
+}
+
+.btn-connect {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 11px;
+  padding: 14px 28px;
+  background: transparent;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  text-transform: uppercase;
   letter-spacing: 1px;
-  animation: pulseHint 2s infinite;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.btn-connect:hover {
+  background: #ffffff;
+  color: #000000;
+  transform: scale(1.08) translateY(-3px);
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+}
+
+.btn-connect:active {
+  transform: scale(0.95);
+}
+
+.wallet-connected-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 10px 20px;
+  border-radius: 4px;
+  color: #ffffff;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
+  letter-spacing: 1px;
 }
 
 @keyframes pulseHint {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
+  0%, 100% { opacity: 0.5; transform: scale(0.95); }
+  50% { opacity: 1; transform: scale(1.05); }
 }
 
 .btn-enter-game {
