@@ -14,7 +14,7 @@ import { getBuildingAt } from '../../game/placement';
 import { Direction } from '../../game/buildings';
 import { useGameStore } from '../../store/gameStore';
 import { computeNextBuildingId, loadBuildings, upsertBuildings } from '../../game/persistence';
-import type { RecipeKey } from '../../game/economyConstants';
+import { RECIPE_BUILDING_IDS, type RecipeKey } from '../../game/economyConstants';
 
 export default function GamePage() {
   const { address } = useAccount();
@@ -45,7 +45,7 @@ export default function GamePage() {
   
   // UI State extracted from engine each frame
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(null);
-  const [recipeKey, setRecipeKey] = useState<RecipeKey>('iron');
+  const [recipeKey, setRecipeKey] = useState<RecipeKey | null>(null);
   const [removeMode, setRemoveMode] = useState(false);
   const [gridPos, setGridPos] = useState({ col: 0, row: 0 });
   const [zoom, setZoom] = useState(1);
@@ -261,7 +261,7 @@ export default function GamePage() {
         gridRow={gridPos.row}
         zoom={zoom}
         fps={fps}
-        smelterRecipeKey={selectedBuildingId === 'smelter' ? recipeKey : null}
+        activeRecipeKey={RECIPE_BUILDING_IDS.has(selectedBuildingId ?? '') ? recipeKey : null}
       />
 
       <aside className="hub-side-panel">
@@ -310,6 +310,22 @@ export default function GamePage() {
               <li className="hub-storage-item">
                 <span className="hub-storage-label">Copper Bar</span>
                 <span className="hub-storage-value copper">{inventory.copper_bar.toLocaleString()}</span>
+              </li>
+              <li className="hub-storage-item">
+                <span className="hub-storage-label">Gold Ore</span>
+                <span className="hub-storage-value diamond">{inventory.gold_ore.toLocaleString()}</span>
+              </li>
+              <li className="hub-storage-item">
+                <span className="hub-storage-label">Gold Bar</span>
+                <span className="hub-storage-value diamond">{inventory.gold_bar.toLocaleString()}</span>
+              </li>
+              <li className="hub-storage-item">
+                <span className="hub-storage-label">Bread</span>
+                <span className="hub-storage-value wheat">{inventory.bread.toLocaleString()}</span>
+              </li>
+              <li className="hub-storage-item">
+                <span className="hub-storage-label">Tools</span>
+                <span className="hub-storage-value iron">{inventory.tool.toLocaleString()}</span>
               </li>
             </ul>
           )}

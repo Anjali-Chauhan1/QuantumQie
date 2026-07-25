@@ -12,6 +12,10 @@ type InventoryRow = {
   diamond: number;
   iron_bar?: number;
   copper_bar?: number;
+  gold_ore?: number;
+  gold_bar?: number;
+  bread?: number;
+  tool?: number;
   village_name?: string | null;
   food?: number | null;
   updated_at?: string;
@@ -48,11 +52,27 @@ function computeScore(row: Partial<InventoryRow>): number {
   const diamond = toNumber(row.diamond);
   const ironBar = toNumber(row.iron_bar);
   const copperBar = toNumber(row.copper_bar);
+  const goldOre = toNumber(row.gold_ore);
+  const goldBar = toNumber(row.gold_bar);
+  const bread = toNumber(row.bread);
+  const tool = toNumber(row.tool);
   const legacyFood = toNumber(row.food);
   const food = wheat + potato + rice;
   const totalFood = food > 0 ? food : legacyFood;
 
-  return money + iron * 10 + copper * 8 + diamond * 50 + ironBar * 40 + copperBar * 50 + totalFood;
+  return (
+    money +
+    iron * 10 +
+    copper * 8 +
+    diamond * 50 +
+    ironBar * 40 +
+    copperBar * 50 +
+    goldOre * 15 +
+    goldBar * 90 +
+    bread * 2 +
+    tool * 120 +
+    totalFood
+  );
 }
 
 function isMissingColumnError(message?: string): boolean {
@@ -81,7 +101,7 @@ export async function GET() {
     );
   }
 
-  const fullSelect = 'save_id, money, wheat, potato, rice, iron_ore, copper_ore, diamond, iron_bar, copper_bar, village_name, food, updated_at';
+  const fullSelect = 'save_id, money, wheat, potato, rice, iron_ore, copper_ore, diamond, iron_bar, copper_bar, gold_ore, gold_bar, bread, tool, village_name, food, updated_at';
   let data: InventoryRow[] | null = null;
   let error: { message: string } | null = null;
 

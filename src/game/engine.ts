@@ -6,7 +6,15 @@ import { getBuildingDef, Direction } from './buildings';
 import { placeBuilding, removeBuilding, getBuildingAt } from './placement';
 import { useGameStore } from '../store/gameStore';
 import { deleteBuilding, upsertBuilding } from './persistence';
-import { RECIPES } from './economyConstants';
+import {
+  RECIPES,
+  RECIPE_BUILDING_IDS,
+  REQUIRED_WORKER_TYPE,
+  HARVEST_YIELD,
+  GENERIC_BUILDING_MONEY_YIELD,
+  PRODUCTION_CYCLE_SECONDS,
+  getProductionSpeedMultiplier,
+} from './economyConstants';
 
 export interface GameEngine {
   camera: Camera;
@@ -71,12 +79,12 @@ export function tick(engine: GameEngine, timestamp: number): void {
   }
 
   // Production Ticking
+  const speedMultiplier = getProductionSpeedMultiplier(useGameStore.getState().level);
   for (let i = 0; i < engine.world.buildings.length; i++) {
     const b = engine.world.buildings[i];
     if (b.assignedWorkerId && !b.readyToHarvest) {
       const wasReady = b.readyToHarvest;
-      // 5 seconds to produce for testing
-      b.productionProgress += (dt / 5) * 100;
+      b.productionProgress += (dt / PRODUCTION_CYCLE_SECONDS) * 100 * speedMultiplier;
       if (b.productionProgress >= 100) {
         b.productionProgress = 100;
         b.readyToHarvest = true;
@@ -140,7 +148,7 @@ export function tick(engine: GameEngine, timestamp: number): void {
             engine.input.mouseGridCol,
             engine.input.mouseGridRow,
             engine.input.currentDirection,
-            def.id === 'smelter' ? engine.input.currentRecipeKey : null
+            RECIPE_BUILDING_IDS.has(def.id) ? engine.input.currentRecipeKey : null
           );
           if (placed) {
             if (cost > 0) {
@@ -155,8 +163,8 @@ export function tick(engine: GameEngine, timestamp: number): void {
       const b = getBuildingAt(engine.world, engine.input.mouseGridCol, engine.input.mouseGridRow);
       if (b) {
         if (b.readyToHarvest) {
-          if (b.defId === 'smelter') {
-            // Smelter harvest is gated on having enough input ore — if the
+          if (RECIPE_BUILDING_IDS.has(b.defId)) {
+            // Recipe-building harvest is gated on having enough input stock — if the
             // player hasn't stockpiled enough yet, leave it "ready" and try
             // again on a later click instead of harvesting nothing.
             const recipe = b.recipeKey ? RECIPES[b.recipeKey] : null;
@@ -172,26 +180,17 @@ export function tick(engine: GameEngine, timestamp: number): void {
             b.readyToHarvest = false;
             b.productionProgress = 0;
 
-            if (b.defId === 'farm-wheat') {
-              store.addResource('wheat', 10);
-            } else if (b.defId === 'farm-potato') {
-              store.addResource('potato', 10);
-            } else if (b.defId === 'farm-rice') {
-              store.addResource('rice', 10);
-            } else if (b.defId === 'mine-iron') {
-              store.addResource('iron_ore', 10);
-            } else if (b.defId === 'mine-copper') {
-              store.addResource('copper_ore', 10);
-            } else if (b.defId === 'mine-diamond') {
-              store.addResource('diamond', 5);
+            const yieldInfo = HARVEST_YIELD[b.defId];
+            if (yieldInfo) {
+              store.addResource(yieldInfo.resource, yieldInfo.amount);
             } else {
-              store.addResource('money', 5);
+              store.addResource('money', GENERIC_BUILDING_MONEY_YIELD);
             }
             void upsertBuilding(b);
           }
         } else if (!b.assignedWorkerId) {
           // Try to assign a worker
-          const requiredType = b.defId === 'smelter' ? 'engineer' : b.defId.startsWith('farm') ? 'farmer' : 'miner';
+          const requiredType = REQUIRED_WORKER_TYPE[b.defId] ?? (b.defId.startsWith('farm') ? 'farmer' : 'miner');
           const availableWorker = store.getAvailableWorker(requiredType);
           if (availableWorker) {
             store.assignWorker(availableWorker.id, b.id);

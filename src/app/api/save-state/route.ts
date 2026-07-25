@@ -12,6 +12,10 @@ type InventoryRow = {
   diamond: number;
   iron_bar: number;
   copper_bar: number;
+  gold_ore: number;
+  gold_bar: number;
+  bread: number;
+  tool: number;
   village_name?: string;
 };
 
@@ -24,7 +28,7 @@ type LegacyInventoryRow = {
 type WorkerRow = {
   id: string;
   save_id: string;
-  type: 'farmer' | 'miner';
+  type: 'farmer' | 'miner' | 'engineer';
   assigned_building_id: string | null;
 };
 

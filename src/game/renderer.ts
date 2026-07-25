@@ -8,7 +8,7 @@ import {
 } from './buildings';
 import { GameWorld, canPlace } from './placement';
 import { InputState } from './input';
-import type { RecipeKey } from './economyConstants';
+import { RECIPE_BUILDING_IDS, REQUIRED_WORKER_TYPE, type RecipeKey } from './economyConstants';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -26,6 +26,18 @@ const VALID_GLOW_LINE = 2;
 const RECIPE_DOT_COLOR: Record<RecipeKey, string> = {
   iron: '#c2c7d2',
   copper: '#f0a24a',
+  gold: '#ffd646',
+  'bread-wheat': '#f5d06a',
+  'bread-potato': '#d7b58c',
+  'bread-rice': '#b9f4c8',
+  'tool-iron': '#c2c7d2',
+  'tool-copper': '#f0a24a',
+};
+
+const WORKER_SPRITE_COLOR: Record<'farmer' | 'miner' | 'engineer', string> = {
+  farmer: '#f5d06a',
+  miner: '#c2c7d2',
+  engineer: '#ff9d5c',
 };
 
 /** Small colored dot on a smelter indicating which recipe it's set to refine. */
@@ -111,7 +123,7 @@ export function render(
       1.0
     );
 
-    if (def.id === 'smelter' && b.recipeKey) {
+    if (RECIPE_BUILDING_IDS.has(def.id) && b.recipeKey) {
       drawRecipeIndicator(ctx, b.recipeKey, screen.x, screen.y, size * tileScreenSize);
     }
 
@@ -126,8 +138,8 @@ export function render(
       const wy = screen.y + totalSize * 0.85;
       const ws = Math.max(6, tileScreenSize * 0.25); // worker size
       
-      const isFarmer = def.id.startsWith('farm');
-      ctx.fillStyle = isFarmer ? '#f5d06a' : def.id === 'smelter' ? '#ff9d5c' : '#c2c7d2';
+      const workerType = REQUIRED_WORKER_TYPE[def.id] ?? (def.id.startsWith('farm') ? 'farmer' : 'miner');
+      ctx.fillStyle = WORKER_SPRITE_COLOR[workerType];
       
       // head
       ctx.beginPath();
@@ -212,7 +224,7 @@ export function render(
 
       const totalSize = ghostSize * tileScreenSize;
 
-      if (ghostDef.id === 'smelter') {
+      if (RECIPE_BUILDING_IDS.has(ghostDef.id) && input.currentRecipeKey) {
         drawRecipeIndicator(ctx, input.currentRecipeKey, ghostScreen.x, ghostScreen.y, totalSize);
       }
 

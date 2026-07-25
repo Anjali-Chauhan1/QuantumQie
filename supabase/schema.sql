@@ -9,6 +9,10 @@ ALTER TABLE inventory ADD COLUMN IF NOT EXISTS copper_ore bigint not null defaul
 ALTER TABLE inventory ADD COLUMN IF NOT EXISTS diamond bigint not null default 0;
 ALTER TABLE inventory ADD COLUMN IF NOT EXISTS iron_bar bigint not null default 0;
 ALTER TABLE inventory ADD COLUMN IF NOT EXISTS copper_bar bigint not null default 0;
+ALTER TABLE inventory ADD COLUMN IF NOT EXISTS gold_ore bigint not null default 0;
+ALTER TABLE inventory ADD COLUMN IF NOT EXISTS gold_bar bigint not null default 0;
+ALTER TABLE inventory ADD COLUMN IF NOT EXISTS bread bigint not null default 0;
+ALTER TABLE inventory ADD COLUMN IF NOT EXISTS tool bigint not null default 0;
 ALTER TABLE inventory ADD COLUMN IF NOT EXISTS updated_at timestamptz not null default now();
 
 create table if not exists inventory (
@@ -24,6 +28,10 @@ create table if not exists inventory (
   diamond bigint not null default 0,
   iron_bar bigint not null default 0,
   copper_bar bigint not null default 0,
+  gold_ore bigint not null default 0,
+  gold_bar bigint not null default 0,
+  bread bigint not null default 0,
+  tool bigint not null default 0,
   updated_at timestamptz not null default now()
 );
 

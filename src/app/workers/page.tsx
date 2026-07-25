@@ -102,7 +102,7 @@ export default function WorkersPage() {
               <div className="shop-icon farmer-icon">👨‍🌾</div>
               <div className="shop-info">
                 <h3>Farmer</h3>
-                <p>Produces carrots, rice, and cabbage at farms.</p>
+                <p>Produces carrots, rice, and cabbage at farms, and bakes bread at the Bakery.</p>
                 <button className="buy-btn" onClick={handleBuyFarmer} disabled={inventory.money < farmerCost}>
                   Hire ${farmerCost.toLocaleString()}
                 </button>
@@ -113,7 +113,7 @@ export default function WorkersPage() {
               <div className="shop-icon miner-icon">⛏️</div>
               <div className="shop-info">
                 <h3>Miner</h3>
-                <p>Extracts ore at copper, iron, and diamond mines.</p>
+                <p>Extracts ore at copper, iron, gold, and diamond mines.</p>
                 <button className="buy-btn" onClick={handleBuyMiner} disabled={inventory.money < minerCost}>
                   Hire ${minerCost.toLocaleString()}
                 </button>
@@ -124,7 +124,7 @@ export default function WorkersPage() {
               <div className="shop-icon engineer-icon">🔧</div>
               <div className="shop-info">
                 <h3>Engineer</h3>
-                <p>Operates the Smelter, refining ore into valuable bars.</p>
+                <p>Operates the Smelter and Toolsmith, refining ore into bars and forging tools.</p>
                 <button className="buy-btn" onClick={handleBuyEngineer} disabled={inventory.money < engineerCost}>
                   Hire ${engineerCost.toLocaleString()}
                 </button>

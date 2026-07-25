@@ -6,7 +6,11 @@ export type ExchangeItemKey =
   | 'copper_ore'
   | 'diamond'
   | 'iron_bar'
-  | 'copper_bar';
+  | 'copper_bar'
+  | 'gold_ore'
+  | 'gold_bar'
+  | 'bread'
+  | 'tool';
 
 export type ExchangeItem = {
   key: ExchangeItemKey;
@@ -19,21 +23,21 @@ export type ExchangeItem = {
 export const EXCHANGE_ITEMS: ExchangeItem[] = [
   {
     key: 'wheat',
-    label: 'Wheat Bundles',
+    label: 'Carrot Bundles',
     description: 'Staple grain for hungry builders.',
     toneClass: 'tone-wheat',
     suggestedUnitPriceQie: '0.00001',
   },
   {
     key: 'potato',
-    label: 'Potato Lots',
+    label: 'Rice Lots',
     description: 'Reliable food stock for long sessions.',
     toneClass: 'tone-potato',
     suggestedUnitPriceQie: '0.000012',
   },
   {
     key: 'rice',
-    label: 'Rice Sacks',
+    label: 'Cabbage Sacks',
     description: 'Compact food bundles for transport.',
     toneClass: 'tone-rice',
     suggestedUnitPriceQie: '0.000013',
@@ -72,5 +76,33 @@ export const EXCHANGE_ITEMS: ExchangeItem[] = [
     description: 'Refined ingots, smelted from raw copper ore.',
     toneClass: 'tone-copper',
     suggestedUnitPriceQie: '0.00012',
+  },
+  {
+    key: 'gold_ore',
+    label: 'Gold Ore',
+    description: 'Precious ore fresh from the deep vein.',
+    toneClass: 'tone-diamond',
+    suggestedUnitPriceQie: '0.00008',
+  },
+  {
+    key: 'gold_bar',
+    label: 'Gold Bars',
+    description: 'Refined bullion, smelted from raw gold ore.',
+    toneClass: 'tone-diamond',
+    suggestedUnitPriceQie: '0.00044',
+  },
+  {
+    key: 'bread',
+    label: 'Bread Loaves',
+    description: 'Fresh-baked loaves, ready for market stalls.',
+    toneClass: 'tone-wheat',
+    suggestedUnitPriceQie: '0.00009',
+  },
+  {
+    key: 'tool',
+    label: 'Tools',
+    description: 'Forged implements, prized by every settlement.',
+    toneClass: 'tone-iron',
+    suggestedUnitPriceQie: '0.0005',
   },
 ];

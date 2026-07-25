@@ -20,6 +20,10 @@ export interface Inventory {
   diamond: number;
   iron_bar: number;
   copper_bar: number;
+  gold_ore: number;
+  gold_bar: number;
+  bread: number;
+  tool: number;
 }
 
 interface GameState {
@@ -64,6 +68,10 @@ const DEFAULT_INVENTORY: Inventory = {
   diamond: 0,
   iron_bar: 0,
   copper_bar: 0,
+  gold_ore: 0,
+  gold_bar: 0,
+  bread: 0,
+  tool: 0,
 };
 
 type InventoryRow = {
@@ -77,6 +85,10 @@ type InventoryRow = {
   diamond: number;
   iron_bar?: number;
   copper_bar?: number;
+  gold_ore?: number;
+  gold_bar?: number;
+  bread?: number;
+  tool?: number;
   village_name?: string;
   food?: number;
   level?: number;
@@ -106,6 +118,10 @@ function normalizeInventory(row?: Partial<InventoryRow> | null): Inventory {
     diamond: typeof row?.diamond === 'number' ? row.diamond : DEFAULT_INVENTORY.diamond,
     iron_bar: typeof row?.iron_bar === 'number' ? row.iron_bar : DEFAULT_INVENTORY.iron_bar,
     copper_bar: typeof row?.copper_bar === 'number' ? row.copper_bar : DEFAULT_INVENTORY.copper_bar,
+    gold_ore: typeof row?.gold_ore === 'number' ? row.gold_ore : DEFAULT_INVENTORY.gold_ore,
+    gold_bar: typeof row?.gold_bar === 'number' ? row.gold_bar : DEFAULT_INVENTORY.gold_bar,
+    bread: typeof row?.bread === 'number' ? row.bread : DEFAULT_INVENTORY.bread,
+    tool: typeof row?.tool === 'number' ? row.tool : DEFAULT_INVENTORY.tool,
   };
 
   const hasNewCrops =
@@ -280,7 +296,7 @@ export const useGameStore = create<GameState>((set, get) => {
 
     const inventoryResponse = await client
       .from('inventory')
-      .select('save_id, money, wheat, potato, rice, iron_ore, copper_ore, diamond, iron_bar, copper_bar, village_name, food, level')
+      .select('save_id, money, wheat, potato, rice, iron_ore, copper_ore, diamond, iron_bar, copper_bar, gold_ore, gold_bar, bread, tool, village_name, food, level')
       .eq('save_id', saveId)
       .maybeSingle();
 
@@ -384,23 +400,16 @@ export const useGameStore = create<GameState>((set, get) => {
 
     upgradeLevel: () => {
       const { inventory, level } = get();
-      if (level === 1 && inventory.money >= LEVEL_UPGRADE_COST[2]) {
-        set({
-          level: 2,
-          inventory: { ...inventory, money: inventory.money - LEVEL_UPGRADE_COST[2] },
-        });
-        void saveState();
-        return true;
-      }
-      if (level === 2 && inventory.money >= LEVEL_UPGRADE_COST[3]) {
-        set({
-          level: 3,
-          inventory: { ...inventory, money: inventory.money - LEVEL_UPGRADE_COST[3] },
-        });
-        void saveState();
-        return true;
-      }
-      return false;
+      const nextLevel = level + 1;
+      const cost = LEVEL_UPGRADE_COST[nextLevel as keyof typeof LEVEL_UPGRADE_COST];
+      if (cost === undefined || inventory.money < cost) return false;
+
+      set({
+        level: nextLevel,
+        inventory: { ...inventory, money: inventory.money - cost },
+      });
+      void saveState();
+      return true;
     },
 
     assignWorker: (workerId: string, buildingId: string) => {

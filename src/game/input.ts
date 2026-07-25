@@ -1,6 +1,6 @@
 import { Camera, screenToGrid, zoomAt } from './camera';
 import { Direction } from './buildings';
-import type { RecipeKey } from './economyConstants';
+import { RECIPES_BY_BUILDING, type RecipeKey } from './economyConstants';
 
 // ---------------------------------------------------------------------------
 // Input state
@@ -18,7 +18,7 @@ export interface InputState {
   selectedBuildingId: string | null;
   removeMode: boolean;
   currentDirection: Direction;
-  currentRecipeKey: RecipeKey;
+  currentRecipeKey: RecipeKey | null;
   canAffordPlacement: boolean;
   // Actions (consumed each frame)
   placeRequested: boolean;
@@ -37,7 +37,7 @@ export function createInputState(): InputState {
     selectedBuildingId: null,
     removeMode: false,
     currentDirection: 'up' as Direction,
-    currentRecipeKey: 'iron' as RecipeKey,
+    currentRecipeKey: null,
     canAffordPlacement: true,
     placeRequested: false,
     removeRequested: false,
@@ -57,14 +57,22 @@ const BUILDING_HOTKEYS: Record<string, string> = {
   '4': 'mine-copper',
   '5': 'mine-iron',
   '6': 'mine-diamond',
+  '7': 'mine-gold',
   '8': 'smelter',
+  '9': 'bakery',
+  '0': 'toolsmith',
 };
 
-const RECIPE_CYCLE: RecipeKey[] = ['iron', 'copper'];
+function defaultRecipeFor(buildingId: string | null): RecipeKey | null {
+  if (!buildingId) return null;
+  return RECIPES_BY_BUILDING[buildingId]?.[0] ?? null;
+}
 
-function nextRecipe(current: RecipeKey): RecipeKey {
-  const idx = RECIPE_CYCLE.indexOf(current);
-  return RECIPE_CYCLE[(idx + 1) % RECIPE_CYCLE.length];
+function nextRecipe(current: RecipeKey | null, buildingId: string | null): RecipeKey | null {
+  const cycle = buildingId ? RECIPES_BY_BUILDING[buildingId] : undefined;
+  if (!cycle || cycle.length === 0) return null;
+  const idx = current ? cycle.indexOf(current) : -1;
+  return cycle[(idx + 1) % cycle.length];
 }
 
 // ---------------------------------------------------------------------------
@@ -146,17 +154,17 @@ export function setupInputHandlers(
       }
     }
 
-    // Cycle smelter recipe (only meaningful while placing a smelter)
-    if ((key === 'c' || key === 'C') && inputState.selectedBuildingId === 'smelter') {
-      inputState.currentRecipeKey = nextRecipe(inputState.currentRecipeKey);
+    // Cycle the active recipe (only meaningful while placing a recipe-driven building)
+    if (key === 'c' || key === 'C') {
+      inputState.currentRecipeKey = nextRecipe(inputState.currentRecipeKey, inputState.selectedBuildingId);
     }
 
-    // Building hotkeys 1‑8
+    // Building hotkeys
     const buildingId = BUILDING_HOTKEYS[key];
     if (buildingId) {
       inputState.selectedBuildingId = buildingId;
       inputState.currentDirection = 'up' as Direction;
-      inputState.currentRecipeKey = 'iron';
+      inputState.currentRecipeKey = defaultRecipeFor(buildingId);
       inputState.removeMode = false;
     }
   };

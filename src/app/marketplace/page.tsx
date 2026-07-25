@@ -66,6 +66,30 @@ const MARKET_ITEMS: MarketItem[] = [
     description: 'Refined ingots, smelted from raw copper ore.',
     toneClass: 'tone-copper',
   },
+  {
+    key: 'gold_ore',
+    label: 'Gold Ore',
+    description: 'Precious ore fresh from the deep vein.',
+    toneClass: 'tone-diamond',
+  },
+  {
+    key: 'gold_bar',
+    label: 'Gold Bars',
+    description: 'Refined bullion, smelted from raw gold ore.',
+    toneClass: 'tone-diamond',
+  },
+  {
+    key: 'bread',
+    label: 'Bread Loaves',
+    description: 'Fresh-baked loaves, ready for market stalls.',
+    toneClass: 'tone-wheat',
+  },
+  {
+    key: 'tool',
+    label: 'Tools',
+    description: 'Forged implements, prized by every settlement.',
+    toneClass: 'tone-iron',
+  },
 ];
 
 function clampNumber(value: number, min: number, max: number): number {

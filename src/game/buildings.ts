@@ -25,7 +25,7 @@ export interface PlacedBuilding {
   assignedWorkerId: string | null;
   productionProgress: number; // 0 to 100
   readyToHarvest: boolean;
-  recipeKey: RecipeKey | null; // smelter only — which ore recipe this instance refines
+  recipeKey: RecipeKey | null; // recipe-building instances only (smelter/bakery/toolsmith)
 }
 
 type SpriteCrop = {
@@ -110,7 +110,7 @@ export const BUILDINGS: BuildingDef[] = [
     size: 4,
     color: '#3d3d45',
     accentColor: '#b4b4c8',
-    hotkey: '7',
+    hotkey: '', // never placeable — filtered from the Toolbar, not wired into any hotkey map
     description: 'Stores and displays your global resources',
     cost: 0,
     minLevel: 1,
@@ -125,6 +125,39 @@ export const BUILDINGS: BuildingDef[] = [
     description: 'Refines raw ore into valuable bars. Choose a recipe with C before placing.',
     cost: 250,
     minLevel: 2,
+  },
+  {
+    id: 'mine-gold',
+    name: 'Gold Mine',
+    size: 7,
+    color: '#5c4a12',
+    accentColor: '#ffd646',
+    hotkey: '7',
+    description: 'Extracts precious gold ore',
+    cost: 220,
+    minLevel: 4,
+  },
+  {
+    id: 'bakery',
+    name: 'Bakery',
+    size: 4,
+    color: '#6b4226',
+    accentColor: '#f4c98b',
+    hotkey: '9',
+    description: 'Bakes crops into valuable bread. Choose a recipe with C before placing.',
+    cost: 180,
+    minLevel: 5,
+  },
+  {
+    id: 'toolsmith',
+    name: 'Toolsmith',
+    size: 4,
+    color: '#3a3a42',
+    accentColor: '#cfd6e0',
+    hotkey: '0',
+    description: 'Forges bars into tools. Choose a recipe with C before placing.',
+    cost: 350,
+    minLevel: 6,
   },
 ];
 
@@ -829,6 +862,121 @@ function drawSmelter(
   }
 }
 
+function drawMinerGold(
+  ctx: CanvasRenderingContext2D,
+  def: BuildingDef,
+  sx: number,
+  sy: number,
+  s: number,
+): void {
+  const cx = sx + s / 2;
+  const cy = sy + s / 2;
+
+  // Three overlapping gold coins
+  ctx.strokeStyle = def.accentColor;
+  ctx.fillStyle = def.accentColor;
+  ctx.lineWidth = Math.max(1.5, s * 0.03);
+
+  const coinR = s * 0.13;
+  for (const [dx, dy] of [
+    [-s * 0.14, s * 0.06],
+    [s * 0.06, -s * 0.08],
+    [s * 0.16, s * 0.1],
+  ] as const) {
+    ctx.beginPath();
+    ctx.arc(cx + dx, cy + dy, coinR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = darken(def.accentColor, 0.35);
+    ctx.stroke();
+  }
+
+  // Gear circles in corners, matching the other mines' framing
+  const gr = s * 0.07;
+  const offset = s * 0.18;
+  ctx.fillStyle = def.accentColor;
+  for (const [dx, dy] of [
+    [-1, -1],
+    [1, -1],
+    [-1, 1],
+    [1, 1],
+  ] as const) {
+    ctx.beginPath();
+    ctx.arc(cx + dx * (s / 2 - offset), cy + dy * (s / 2 - offset), gr, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawBakery(
+  ctx: CanvasRenderingContext2D,
+  def: BuildingDef,
+  sx: number,
+  sy: number,
+  s: number,
+): void {
+  const cx = sx + s / 2;
+  const cy = sy + s / 2;
+
+  // Oven arch
+  ctx.strokeStyle = def.accentColor;
+  ctx.lineWidth = Math.max(1.5, s * 0.03);
+  ctx.beginPath();
+  ctx.arc(cx, cy - s * 0.02, s * 0.22, Math.PI, 0);
+  ctx.stroke();
+
+  // Loaf of bread — rounded shape with score lines
+  const loafW = s * 0.32;
+  const loafH = s * 0.18;
+  const loafY = cy + s * 0.16;
+  ctx.fillStyle = def.accentColor;
+  ctx.beginPath();
+  ctx.ellipse(cx, loafY, loafW / 2, loafH / 2, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = darken(def.accentColor, 0.35);
+  ctx.lineWidth = Math.max(1, s * 0.02);
+  for (const offsetX of [-loafW * 0.2, 0, loafW * 0.2]) {
+    ctx.beginPath();
+    ctx.moveTo(cx + offsetX, loafY - loafH * 0.35);
+    ctx.lineTo(cx + offsetX, loafY + loafH * 0.1);
+    ctx.stroke();
+  }
+}
+
+function drawToolsmith(
+  ctx: CanvasRenderingContext2D,
+  def: BuildingDef,
+  sx: number,
+  sy: number,
+  s: number,
+): void {
+  const cx = sx + s / 2;
+  const cy = sy + s / 2;
+
+  // Anvil silhouette
+  ctx.fillStyle = def.accentColor;
+  const baseW = s * 0.36;
+  const baseH = s * 0.1;
+  const topW = s * 0.24;
+  const topH = s * 0.08;
+  ctx.fillRect(cx - baseW / 2, cy + s * 0.05, baseW, baseH);
+  ctx.fillRect(cx - topW / 2, cy - s * 0.05, topW, topH);
+  ctx.fillRect(cx - s * 0.04, cy - s * 0.05 + topH, s * 0.08, s * 0.1);
+
+  // Hammer head + handle, angled over the anvil
+  ctx.save();
+  ctx.translate(cx + s * 0.16, cy - s * 0.2);
+  ctx.rotate(Math.PI / 5);
+  ctx.fillStyle = def.accentColor;
+  ctx.fillRect(-s * 0.09, -s * 0.045, s * 0.18, s * 0.09);
+  ctx.strokeStyle = darken(def.accentColor, 0.3);
+  ctx.lineWidth = Math.max(2, s * 0.035);
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(0, s * 0.22);
+  ctx.stroke();
+  ctx.restore();
+}
+
 // ── Public Drawing API ───────────────────────────────────────────────────────
 
 /**
@@ -893,6 +1041,15 @@ export function drawBuilding(
     case 'smelter':
       drawSmelter(ctx, def, screenX, screenY, totalSize);
       break;
+    case 'mine-gold':
+      if (!drewMineSprite) drawMinerGold(ctx, def, screenX, screenY, totalSize);
+      break;
+    case 'bakery':
+      drawBakery(ctx, def, screenX, screenY, totalSize);
+      break;
+    case 'toolsmith':
+      drawToolsmith(ctx, def, screenX, screenY, totalSize);
+      break;
   }
 
   ctx.restore();
@@ -956,6 +1113,18 @@ export function drawBuildingIcon(
     }
     case 'smelter': {
       drawSmelter(ctx, def, x, y, size);
+      break;
+    }
+    case 'mine-gold': {
+      if (!drewMineIcon) drawMinerGold(ctx, def, x, y, size);
+      break;
+    }
+    case 'bakery': {
+      drawBakery(ctx, def, x, y, size);
+      break;
+    }
+    case 'toolsmith': {
+      drawToolsmith(ctx, def, x, y, size);
       break;
     }
   }
